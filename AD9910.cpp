@@ -10,8 +10,6 @@ DigitalOut  p_2(p20);
 DigitalOut  MASTER_RESET(p15);
 DigitalOut  EXT_PWR_DWN(p14);
 DigitalIn   ctrl(p30);
-DigitalOut  myled(LED1);
-DigitalOut  myled2(LED2);
 
 // SPI: MOSI, MISO, SCLK
 SPI spi(p5, p6, p7);
@@ -153,21 +151,33 @@ void io_update_pulse(float time_us){
 // writes data at the specified register
 void write_register(int address, uint64_t data, int data_size){
     
-    int i;
+    int i, trans_flag;
     int *data_bytes = get_byte(data, data_size);
     
     cs = 0;
     io_reset = 0;
-    pc.printf("Starting data transfer...\n\r");
+    pc.printf("Starting data transfer at register 0x%02X...\n\r", address);
     
     spi.write(address);    //  address
     
     for(i=0; i+1 <= data_size/8; i++){
-        pc.printf("\twriting 0x%02X at register 0x%02X\n\r", data_bytes[i], address);
-        spi.write(data_bytes[i]);
+        pc.printf("\t0x%02X\t", data_bytes[i]);
+        trans_flag = spi.write(data_bytes[i]);
+        pc.printf("Returns: 0x%02X\n\r", trans_flag);
+        
+        if(trans_flag != 0xFF){
+            pc.printf("\t\tError tranfering byte %d to adress!!\tReturning -1...\n\r",i);
+            //return -1;
+        }
     }
     
     cs = 1;
     io_update_pulse(100);
     free(data_bytes);
+
+    trans_flag = spi.write(address|0x80);
+    pc.printf("\tregister returns 0x%02X\n\r",trans_flag);
+    
+    io_update_pulse(100);    
+
 }
