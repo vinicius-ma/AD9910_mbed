@@ -17,7 +17,7 @@ DigitalOut  myled2(LED2);
 SPI spi(p5, p6, p7);
 
 // Serial Monitor: TX, RX
-Serial pc(USBTX, USBRX)
+Serial pc(USBTX, USBRX);
 
 
 // write single tone register from amplitude, phase and frequency
